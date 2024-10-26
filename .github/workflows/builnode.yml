@@ -1,0 +1,26 @@
+name: Build-and-deploy
+
+on:
+  push:
+    branches: ["dev"]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: dev
+
+      - name: Use Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - run: yarn install
+
+      - name: Sync project
+        env :
+          RSYNC_PASSWORD : Zdg%*|8}7QCo
+        run: rsync -rult --delete --exclude=.env* ./ rsync_metaswap_back@2.59.42.87::metaswap_back

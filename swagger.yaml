@@ -1,0 +1,423 @@
+openapi: 3.0.0
+info:
+  title: "REST API"
+  version: "1.0.0"
+  description: "Example docs"
+servers:
+  - url: "http://localhost:3001"
+    description: "Local server"
+
+components:
+  securitySchemes:
+    XAuthToken:
+      type: apiKey
+      in: header
+      name: X-Auth-Token
+      description: "Provide your X-Auth-Token for authorization"
+
+security:
+  - XAuthToken: []
+
+paths:
+  /swaps:
+    post:
+      tags:
+        - "swaps"
+      summary: "Create swap"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                sourceCurrency:
+                  type: string
+                  example: "ETH"
+                destinationCurrency:
+                  type: string
+                  example: "USDT"
+                amount:
+                  type: integer
+                  example: 1
+      responses:
+        '200':
+          description: "Successful"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  kind:
+                    type: string
+                    example: "OK"
+                  message:
+                    type: string
+                    example: "Swap created successfully"
+        '400':
+          description: "Invalid input"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  kind:
+                    type: string
+                    example: "API_ERROR"
+                  message:
+                    type: string
+                    example: "Not enough funds for processing withdrawal by service fee."
+        '500':
+          description: "Server Error"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  kind:
+                    type: string
+                    example: "API_ERROR"
+                  message:
+                    type: string
+                    example: "Internal server error"
+
+  /verification:
+    post:
+      tags:
+        - "KYC"
+      summary: KYC verification request
+      description: Submit a KYC verification request with required documents and user details.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - firstName
+                - lastName
+                - docId
+                - photoDoc
+                - photoUserWithDoc
+              properties:
+                firstName:
+                  type: string
+                  description: "User's first name"
+                lastName:
+                  type: string
+                  description: "User's last name"
+                docId:
+                  type: string
+                  description: "Document ID"
+                photoDoc:
+                  type: string
+                  format: binary
+                  description: "Photo of the document (e.g., ID, passport)"
+                photoUserWithDoc:
+                  type: string
+                  format: binary
+                  description: "Photo of the user holding the document"
+      responses:
+        '200':
+          description: Successful verification request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  userId:
+                    type: integer
+                    example: 123
+                  firstName:
+                    type: string
+                    example: "John"
+                  lastName:
+                    type: string
+                    example: "Doe"
+                  docId:
+                    type: string
+                    example: "AB123456"
+                  status:
+                    type: string
+                    example: "pending"
+                  message:
+                    type: string
+                    example: "Verification request submitted successfully"
+        '400':
+          description: Bad Request - Invalid input or missing fields
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "photoDoc required"
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Internal server error"
+
+  /getFormUrl:
+    post:
+      tags:
+        - "KYC"
+      summary: Get form URL
+      description: Endpoint to retrieve the URL for a form based on the form ID and applicant ID.
+      responses:
+        '200':
+          description: Successfully retrieved form URL.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  form_url:
+                    type: string
+                    example: "https://kyc-forms-new.amlbot.com/682c9f97155c704ee629b155bfe123070748"
+        '401':
+          description: Unauthorized - Invalid or missing credentials.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  type:
+                    type: string
+                    example: "unauthorized"
+                  errors:
+                    type: array
+                    items:
+                      type: string
+                    example: []
+        '400':
+          description: Bad Request - Invalid form ID or applicant ID.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Invalid form ID or applicant ID."
+        '500':
+          description: Internal Server Error - Failed to retrieve form URL.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "An error occurred while retrieving the form URL."
+
+  /autoconverts:
+    get:
+      tags:
+      - "autoconvert"
+      summary: AutoConvert Get request.
+      description: Get Autoconvert data.
+      responses:
+        '200':
+          description: Successful response with auto convert data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          example: "3"
+                        currencyFrom:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                              example: "ETH"
+                            type:
+                              type: string
+                              example: "CRYPTO"
+                            cryptoCode:
+                              type: string
+                              example: "ETH"
+                            cryptoToken:
+                              type: string
+                              example: "ETH"
+                            cryptoChain:
+                              type: string
+                              example: "ETHEREUM"
+                            cryptoTokenName:
+                              type: string
+                              example: "ETH"
+                            cryptoChainName:
+                              type: string
+                              example: "Ethereum"
+                            decimals:
+                              type: integer
+                              example: 18
+                        currencyTo:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                              example: "USDT"
+                            type:
+                              type: string
+                              example: "CRYPTO"
+                            cryptoCode:
+                              type: string
+                              example: "USDT"
+                            cryptoToken:
+                              type: string
+                              example: "USDT"
+                            cryptoChain:
+                              type: string
+                              example: "ETHEREUM"
+                            cryptoTokenName:
+                              type: string
+                              example: "USDT"
+                            cryptoChainName:
+                              type: string
+                              example: "Ethereum"
+                            decimals:
+                              type: integer
+                              example: 6
+        '400':
+          description: Bad Request - User not found
+        '500':
+          description: Internal Server Error
+
+    post:
+      tags:
+      - "autoconvert"
+      summary: Create an auto convert
+      description: Creates a new auto convert with the given currency details.
+      requestBody:
+        description: Currency conversion details
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                currencyIdFrom:
+                  type: string
+                  example: "ETH"
+                currencyIdTo:
+                  type: string
+                  example: "USDT"
+      responses:
+        '201':
+          description: Successfully created auto convert.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    example: "3"
+                  currencyFrom:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        example: "ETH"
+                      type:
+                        type: string
+                        example: "CRYPTO"
+                      cryptoCode:
+                        type: string
+                        example: "ETH"
+                      cryptoToken:
+                        type: string
+                        example: "ETH"
+                      cryptoChain:
+                        type: string
+                        example: "ETHEREUM"
+                      cryptoTokenName:
+                        type: string
+                        example: "ETH"
+                      cryptoChainName:
+                        type: string
+                        example: "Ethereum"
+                      decimals:
+                        type: integer
+                        example: 18
+                  currencyTo:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        example: "USDT"
+                      type:
+                        type: string
+                        example: "CRYPTO"
+                      cryptoCode:
+                        type: string
+                        example: "USDT"
+                      cryptoToken:
+                        type: string
+                        example: "USDT"
+                      cryptoChain:
+                        type: string
+                        example: "ETHEREUM"
+                      cryptoTokenName:
+                        type: string
+                        example: "USDT"
+                      cryptoChainName:
+                        type: string
+                        example: "Ethereum"
+                      decimals:
+                        type: integer
+                        example: 6
+
+        '400':
+          description: Unsupported currency error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  kind:
+                    type: string
+                    example: "UNSUPPORTED_CURRENCY_ERR"
+                  message:
+                    type: string
+                    example: "unsupported currency"
+
+        '409':
+          description: Duplicate auto convert entry
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  kind:
+                    type: string
+                    example: "DUPLICATE"
+                  message:
+                    type: string
+                    example: "The pair already exist."
+        
+        '500':
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Internal server error"
